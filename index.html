@@ -649,7 +649,7 @@ async function pollOpenSky(my){
 }
 
 /* ---------- route lookup (adsb.lol routeset) ---------- */
-const routeQueue=[]; let routeProxy=0, useRelayRoutes=!!RELAY, relayRouteFails=0;
+const routeQueue=[]; let routeProxy=0, useRelayRoutes=!!RELAY, relayRouteFails=0, staticDeadUntil=0, routeServiceDown=false;
 function wantsRoute(p){ return p.cs && !routes.has(p.cs) && /^[A-Z]{3}\d/.test(p.cs); }
 function parseRoute(r){
   if (!r || !r._airports || r._airports.length<2 || !r.airport_codes || r.airport_codes==='unknown') return null;
@@ -669,17 +669,40 @@ async function routeWorker(){
     for (const p of planes.values()) if (bnds.contains([p.lat,p.lon])) push(p);
     for (const p of planes.values()) push(p);
     if (!batch.length) continue;
+    // 1st choice: adsb.lol's static route files, read through your relay (relay version 4+)
+    if (RELAY && Date.now()>staticDeadUntil){
+      const chunks=[]; for (let i=0;i<batch.length;i+=40) chunks.push(batch.slice(i,i+40));
+      try{
+        const results = await Promise.all(chunks.map(c=>getJSON(`${RELAY}/routes?cs=${c.map(p=>encodeURIComponent(p.cs)).join(',')}`)));
+        if (!results.every(Array.isArray)) throw new Error('relay has no /routes yet');
+        let found=0;
+        for (const r of results.flat()){ if (r && r.callsign){ const pr=parseRoute(r); routes.set(r.callsign, pr); if (pr) found++; } }
+        for (const p of batch) if (routes.get(p.cs)==='pending') routes.set(p.cs,null);
+        routeServiceDown=false;
+        if (selected){ renderDetail(); if (!routeOf(selected)) secondOpinion(selected); }
+        scheduleStats();
+        continue;
+      }catch(e){
+        console.warn('static route files unavailable:', e.message);
+        staticDeadUntil = Date.now()+5*60*1000;   // try the older route service meanwhile
+      }
+    }
     try{
       const res = await getJSON(useRelayRoutes ? RELAY+'/routeset' : PROXIES[routeProxy].wrap('https://api.adsb.lol/api/0/routeset'),{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({planes:batch.map(p=>({callsign:p.cs,lat:p.lat,lng:p.lon}))})});
       const got=new Set();
-      for (const r of (Array.isArray(res)?res:[])){ if (r && r.callsign){ routes.set(r.callsign, parseRoute(r)); got.add(r.callsign);} }
+      // A whole batch of airline flights coming back "unknown" means the service is broken, not that none are listed.
+      const list=Array.isArray(res)?res:[];
+      if (batch.length>=15 && list.every(r=>!r || r.airport_codes==='unknown' || !r._airports || !r._airports.length)) throw new Error('route service returned nothing for every flight');
+      for (const r of list){ if (r && r.callsign){ routes.set(r.callsign, parseRoute(r)); got.add(r.callsign);} }
+      routeServiceDown=false;
       for (const p of batch) if (!got.has(p.cs)) routes.set(p.cs,null);
       if (useRelayRoutes) relayRouteFails=0;
       if (selected){ renderDetail(); if (!routeOf(selected)) secondOpinion(selected); }
       scheduleStats();
     }catch(e){
       for (const p of batch) routes.delete(p.cs);
+      routeServiceDown=true; if (selected) renderDetail();
       if (useRelayRoutes){
         if (++relayRouteFails>=3){ useRelayRoutes=false; relayRouteFails=0; setTimeout(()=>{ useRelayRoutes=true; routeProxy=0; }, 120000); }
         await sleep(5000); continue;
@@ -1080,7 +1103,10 @@ function renderDetail(){
   const why = r ? '' : pending || r2s==='pending' ? 'Looking up the route…'
     : !p.cs ? "This aircraft isn't broadcasting a flight number, so its route can't be looked up."
     : !/^[A-Z]{3}\d/.test(p.cs) ? (/^N\d/.test(p.cs)||/^N\d/.test(p.reg||'') ? "Private flight. Routes for private planes aren't published in free data." : "This callsign isn't an airline flight number, so there's no published route.")
-    : ambiguous ? '' : rejected ? '' : "This flight number isn't in the free route databases.";
+    : ambiguous ? '' : rejected ? ''
+    : r2s && r2s!=='pending' ? `This flight number is listed (in adsbdb) as ${r2s.airports.map(a=>esc(apCode(a))).join(' → ')}, but that doesn't match where this plane is or where it's heading, so it isn't shown.`
+    : routeServiceDown && !routes.has(p.cs) ? "The route service isn't responding right now. Routes will fill in when it's back."
+    : "This flight number isn't in the free route databases.";
   const model = p.desc || (typeInfo(p)||{}).name || '';
   const o=r?r.airports[0]:null, d=r?r.airports.at(-1):null;
   let prog='';
