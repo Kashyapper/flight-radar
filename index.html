@@ -676,7 +676,7 @@ async function routeWorker(){
       for (const r of (Array.isArray(res)?res:[])){ if (r && r.callsign){ routes.set(r.callsign, parseRoute(r)); got.add(r.callsign);} }
       for (const p of batch) if (!got.has(p.cs)) routes.set(p.cs,null);
       if (useRelayRoutes) relayRouteFails=0;
-      if (selected) renderDetail();
+      if (selected){ renderDetail(); if (!routeOf(selected)) secondOpinion(selected); }
       scheduleStats();
     }catch(e){
       for (const p of batch) routes.delete(p.cs);
@@ -773,13 +773,29 @@ function matchLeg(p, aps){
   }
   return best;
 }
+const routes2 = new Map();   // second opinion (adsbdb): callsign -> route | null | 'pending'
 function routeOf(p){
-  const r=rawRoute(p); if (!r) return null;
-  if (p._rv && p._rv.seen===p.seen && p._rv.r===r) return p._rv.res;
-  const m=matchLeg(p, r.airports);
-  const res = m && !m.ambiguous ? {airports:[r.airports[m.i], r.airports[m.i+1]], all:r.airports, leg:m.i, phase:m.phase, airline:r.airline} : null;
-  p._rv={seen:p.seen, r, res, ambiguous: !!(m && m.ambiguous)};
+  const r=rawRoute(p), r2raw=p&&p.cs?routes2.get(p.cs):null, r2=(r2raw&&r2raw!=='pending')?r2raw:null;
+  if (!r && !r2) return null;
+  if (p._rv && p._rv.seen===p.seen && p._rv.r===r && p._rv.r2===r2) return p._rv.res;
+  let res=null, ambiguous=false;
+  for (const [cand, source] of [[r,'adsb.lol'],[r2,'adsbdb']]){
+    if (!cand) continue;
+    const m=matchLeg(p, cand.airports);
+    if (m && m.ambiguous){ ambiguous = ambiguous || source==='adsb.lol'; continue; }
+    if (m){ res={airports:[cand.airports[m.i], cand.airports[m.i+1]], all:cand.airports, leg:m.i, phase:m.phase, airline:cand.airline, source}; break; }
+  }
+  p._rv={seen:p.seen, r, r2, res, ambiguous};
   return res;
+}
+async function secondOpinion(p){
+  if (!RELAY || !p || !p.cs || !/^[A-Z]{3}\d/.test(p.cs) || routes2.has(p.cs)) return;
+  routes2.set(p.cs,'pending');
+  try{
+    const res = await fetch(`${RELAY}/callsign/${encodeURIComponent(p.cs)}`);
+    routes2.set(p.cs, res.ok ? parseAdsbdb(await res.json()) : null);
+  }catch(e){ routes2.delete(p.cs); return; }
+  if (selected && selected.cs===p.cs) renderDetail();
 }
 
 /* ---------- map ---------- */
@@ -899,6 +915,7 @@ function select(p){
   selected=p||null;
   if (p && p.cs && !routes.has(p.cs)) routeQueue.unshift(p.hex);
   renderDetail(); scheduleRender();
+  if (p && !routeOf(p)) secondOpinion(p);
   if (p && window.innerWidth<=760) document.getElementById('side').classList.remove('min');
 }
 
@@ -1059,6 +1076,11 @@ function renderDetail(){
   const t=TYPE_BY_ID[p.kind], r=routeOf(p), pending=p.cs&&routes.get(p.cs)==='pending';
   const airline=airlineName(p);
   const raw=rawRoute(p), ambiguous = !r && raw && p._rv && p._rv.ambiguous, rejected = raw && !r && !ambiguous;
+  const r2s = p.cs ? routes2.get(p.cs) : undefined;
+  const why = r ? '' : pending || r2s==='pending' ? 'Looking up the route…'
+    : !p.cs ? "This aircraft isn't broadcasting a flight number, so its route can't be looked up."
+    : !/^[A-Z]{3}\d/.test(p.cs) ? (/^N\d/.test(p.cs)||/^N\d/.test(p.reg||'') ? "Private flight. Routes for private planes aren't published in free data." : "This callsign isn't an airline flight number, so there's no published route.")
+    : ambiguous ? '' : rejected ? '' : "This flight number isn't in the free route databases.";
   const model = p.desc || (typeInfo(p)||{}).name || '';
   const o=r?r.airports[0]:null, d=r?r.airports.at(-1):null;
   let prog='';
@@ -1080,14 +1102,16 @@ function renderDetail(){
       <button class="x" id="close" aria-label="Close">×</button>
     </div>
     <div class="route">
-      <div class="ap"><b>${o?esc(apCode(o)):'—'}</b><span title="${o?esc(o.name):''}">${o?esc(o.city||o.name):(pending?'Looking up…':'Origin unknown')}</span></div>
+      <div class="ap"><b>${o?esc(apCode(o)):'—'}</b><span title="${o?esc(o.name):''}">${o?esc(o.city||o.name):(pending?'Looking up…':'Not known')}</span></div>
       <div class="arrow">→</div>
-      <div class="ap"><b>${d?esc(apCode(d)):'—'}</b><span title="${d?esc(d.name):''}">${d?esc(d.city||d.name):(pending?'':'Destination unknown')}</span></div>
+      <div class="ap"><b>${d?esc(apCode(d)):'—'}</b><span title="${d?esc(d.name):''}">${d?esc(d.city||d.name):(pending?'':'Not known')}</span></div>
     </div>
     ${r&&r.all.length>2?`<p class="empty" style="margin:-4px 0 10px">Leg ${r.leg+1} of ${r.all.length-1} · ${r.all.map(a=>esc(apCode(a))).join(' → ')}</p>`:''}
     ${r&&r.phase&&r.phase!=='en route'?`<p class="empty" style="margin:-4px 0 10px">${esc(r.phase[0].toUpperCase()+r.phase.slice(1))}</p>`:''}
     ${ambiguous?`<p class="empty" style="margin:-4px 0 10px">Round trip ${raw.airports.map(a=>esc(apCode(a))).join(' → ')}. On the ground here, so it isn't clear yet which leg it's flying.</p>`:''}
-    ${rejected?`<p class="empty" style="margin:-4px 0 10px">This flight number is listed as ${raw.airports.map(a=>esc(apCode(a))).join(' → ')}, but that doesn't match where this plane is or where it's heading, so it isn't shown.</p>`:''}
+    ${rejected?`<p class="empty" style="margin:-4px 0 10px">This flight number is listed as ${raw.airports.map(a=>esc(apCode(a))).join(' → ')}, but that doesn't match where this plane is or where it's heading, so it isn't shown.${r2s&&r2s!=='pending'?` A second database (adsbdb) lists ${r2s.airports.map(a=>esc(apCode(a))).join(' → ')}, which doesn't match either.`:''} Airlines reuse flight numbers, so the free listings are often out of date.</p>`:''}
+    ${why?`<p class="empty" style="margin:-4px 0 10px">${why}</p>`:''}
+    ${r&&r.source==='adsbdb'?`<p class="empty" style="margin:-4px 0 10px">Route from the adsbdb database (the main listing was missing or didn't match). It fits this plane's position and heading.</p>`:''}
     <div class="tabs" role="tablist" aria-label="Detail level">
       <button role="tab" data-tab="overview" aria-selected="${detailTab==='overview'}"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="2" rx="1" fill="currentColor"/><rect x="2" y="7" width="12" height="2" rx="1" fill="currentColor"/><rect x="2" y="11" width="8" height="2" rx="1" fill="currentColor"/></svg>Overview</button>
       <button role="tab" data-tab="detail" aria-selected="${detailTab==='detail'}"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="8" width="3" height="6" rx="1" fill="currentColor"/><rect x="6.5" y="4" width="3" height="10" rx="1" fill="currentColor"/><rect x="11" y="2" width="3" height="12" rx="1" fill="currentColor"/></svg>Detailed metrics</button>
