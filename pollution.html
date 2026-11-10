@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Planes and Pollution</title>
-<meta name="description" content="How much pollution humans cause, where planes fit in, and what can be done about it.">
+<meta name="description" content="Where human greenhouse gas emissions come from, how much planes add, and what can bring it down.">
 <style>
   :root{
     --bg:#fcfcfb; --ink:#0b0b0b; --ink-2:#52514e; --muted:#7a7975; --line:#e6e4df; --soft:#f3f2ee;
@@ -31,18 +31,27 @@
   .dek{font-size:21px;line-height:1.5;color:var(--ink-2);margin:0 0 28px}
   .byline{font:14px/1.4 var(--sans);color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
   .art{display:block;width:100%;height:auto;margin:36px 0 8px}
-  h2{font:700 26px/1.25 var(--serif);margin:52px 0 14px}
+  h2{font:700 26px/1.25 var(--serif);margin:56px 0 14px}
   p{margin:0 0 20px}
-  strong{font-weight:700}
+  sup{font:600 11px/0 var(--sans)}
+  sup a{color:var(--muted);text-decoration:none}
   figure{margin:32px 0 36px}
   figcaption{font:13px/1.5 var(--sans);color:var(--muted);margin-top:12px}
   .fig-title{font:600 15px/1.4 var(--sans);margin:0 0 4px}
   .fig-sub{font:13px/1.4 var(--sans);color:var(--muted);margin:0 0 16px}
 
-  /* stats table */
+  /* sector explainer list */
+  dl.sectors{margin:0 0 24px;font-size:17px}
+  dl.sectors div{padding:12px 0;border-top:1px solid var(--line)}
+  dl.sectors div:last-child{border-bottom:1px solid var(--line)}
+  dl.sectors dt{font:600 15px/1.4 var(--sans)}
+  dl.sectors dt span{color:var(--muted);font-weight:400}
+  dl.sectors dd{margin:4px 0 0;color:var(--ink-2)}
+
+  /* table */
   .table-wrap{overflow-x:auto;border-top:2px solid var(--ink);border-bottom:1px solid var(--line)}
   table{width:100%;border-collapse:collapse;font:14px/1.45 var(--sans)}
-  th,td{text-align:left;padding:11px 10px;vertical-align:top;border-bottom:1px solid var(--line)}
+  th,td{text-align:left;padding:10px;vertical-align:top;border-bottom:1px solid var(--line)}
   th{font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
   td.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
   th.num{text-align:right}
@@ -50,16 +59,17 @@
   td small{color:var(--muted)}
   tr:last-child td{border-bottom:none}
 
-  /* bar chart */
+  /* bars */
   .bars{font:14px/1.3 var(--sans)}
-  .bar-row{display:grid;grid-template-columns:96px 1fr;align-items:center;gap:12px;margin:10px 0}
+  .bar-row{display:grid;grid-template-columns:150px 1fr;align-items:center;gap:12px;margin:9px 0}
   .bar-name{color:var(--ink-2)}
   .bar-area{display:flex;align-items:center;gap:8px}
   .bar{height:22px;background:var(--s1);border-radius:0 4px 4px 0}
+  .bar.hl{background:var(--s2)}
   .bar:hover{filter:brightness(1.1)}
   .bar-val{font-variant-numeric:tabular-nums;white-space:nowrap}
 
-  /* stacked bar */
+  /* stacked */
   .stack{display:flex;height:28px;gap:2px}
   .stack div{height:100%}
   .stack .a{background:var(--s1);border-radius:4px 0 0 4px}
@@ -68,18 +78,20 @@
   .stack-labels div{display:flex;gap:6px;align-items:flex-start}
   .key{width:10px;height:10px;border-radius:2px;margin-top:5px;flex:none}
 
-  .sources{font:14px/1.6 var(--sans);color:var(--ink-2);padding-left:20px}
+  .sources{font:14px/1.6 var(--sans);color:var(--ink-2);padding-left:22px}
+  .sources li{margin-bottom:6px}
   .sources a{color:var(--ink-2)}
+  .sources span{color:var(--muted)}
   a{color:var(--s1)}
   .note{font:14px/1.6 var(--sans);color:var(--muted)}
   footer{border-top:1px solid var(--line);margin-top:56px;padding:28px 0 64px}
-  @media (max-width:520px){
+  .swipe{display:none}
+  @media (max-width:560px){
     body{font-size:17px}
-    .bar-row{grid-template-columns:76px 1fr}
-    th,td{padding:9px 8px}
-    table{min-width:620px}
+    .bar-row{grid-template-columns:104px 1fr}
+    table{min-width:600px}
     .table-wrap{margin-right:-16px}
-    .swipe{display:block !important}
+    .swipe{display:block}
   }
 </style>
 </head>
@@ -88,7 +100,7 @@
 <header class="col">
   <div class="eyebrow">Flight Radar · Explainer</div>
   <h1>How Much Do Planes Really Pollute?</h1>
-  <p class="dek">About 100,000 flights take off every day. Here is how much pollution they cause, how that compares with everything else people do, and what could bring it down.</p>
+  <p class="dek">Where the world's greenhouse gases come from, how much the roughly 100,000 flights a day add to that, and what could bring it down.</p>
   <div class="byline">November 2026</div>
 
   <svg class="art" viewBox="0 0 680 150" role="img" aria-label="A plane leaving a long contrail across the sky">
@@ -105,63 +117,106 @@
 
 <main class="col">
 
-  <p>Every day, people around the world release about <strong>146 million tonnes</strong> of greenhouse gases. Most of it is carbon dioxide (CO₂) from burning coal, oil and gas. The rest is mainly methane, which comes largely from farming and fossil fuels, plus nitrous oxide and industrial gases. Over a full year, that adds up to about 53 billion tonnes.</p>
+  <p>Greenhouse gases are gases that trap heat in the atmosphere and warm the planet. The main one is carbon dioxide (CO₂), released whenever coal, oil or gas is burned. The others are methane, nitrous oxide and a group of industrial "F-gases." To add them all together, scientists convert each gas into the amount of CO₂ that would cause the same warming. This is called <strong>CO₂-equivalent</strong>, or CO₂e.</p>
 
-  <p>Planes are one piece of that total. All the world's flights together release about <strong>2.7 million tonnes of CO₂ a day</strong>, roughly the same as all the world's cargo ships. That's about 2.5% of humanity's CO₂, or about 1.8% of all greenhouse gases. The table below puts every number in this article in one place.</p>
+  <p>In 2024, humans released about <strong>53 billion tonnes</strong> of greenhouse gases, not counting forests and land use.<sup><a href="#s1">1</a></sup> That's roughly <strong>146 million tonnes every day</strong>. About three-quarters of it was CO₂ from fossil fuels, and most of the rest was methane.<sup><a href="#s1">1</a></sup></p>
+
+  <h2>Where our emissions come from</h2>
+
+  <p>The most widely used breakdown comes from the UN's climate science panel, the IPCC. It sorts every human source into five sectors. This count includes cutting down forests, which pushes the total up to about 59 billion tonnes for 2019.<sup><a href="#s2">2</a></sup></p>
 
   <figure>
-    <p class="fig-title">Emissions at a glance</p>
-    <p class="fig-sub">CO₂ unless marked CO₂e (CO₂-equivalent, which counts other gases by how much warming they cause).</p>
+    <p class="fig-title">Global greenhouse gas emissions by sector</p>
+    <p class="fig-sub">Share of the total, 2019. Billion tonnes of CO₂e in brackets.</p>
+    <div class="bars" role="img" aria-label="Energy supply 34%, industry 24%, agriculture forestry and land use 22%, transport 15%, buildings 6%">
+      <div class="bar-row"><span class="bar-name">Energy supply</span><div class="bar-area"><div class="bar" style="width:85%" title="Energy supply: 34% (20 billion tonnes)"></div><span class="bar-val">34% (20)</span></div></div>
+      <div class="bar-row"><span class="bar-name">Industry</span><div class="bar-area"><div class="bar" style="width:60%" title="Industry: 24% (14 billion tonnes)"></div><span class="bar-val">24% (14)</span></div></div>
+      <div class="bar-row"><span class="bar-name">Farming, forests &amp; land</span><div class="bar-area"><div class="bar" style="width:55%" title="Agriculture, forestry and land use: 22% (13 billion tonnes)"></div><span class="bar-val">22% (13)</span></div></div>
+      <div class="bar-row"><span class="bar-name">Transport</span><div class="bar-area"><div class="bar" style="width:37.5%" title="Transport: 15% (8.7 billion tonnes)"></div><span class="bar-val">15% (8.7)</span></div></div>
+      <div class="bar-row"><span class="bar-name">Buildings</span><div class="bar-area"><div class="bar" style="width:15%" title="Buildings: 6% (3.3 billion tonnes)"></div><span class="bar-val">6% (3.3)</span></div></div>
+    </div>
+    <figcaption>Source: IPCC Sixth Assessment Report, Working Group III (2022). Shares add to 101% because of rounding.</figcaption>
+  </figure>
+
+  <dl class="sectors">
+    <div><dt>Energy supply <span>34%</span></dt><dd>Power plants burning coal and gas to make electricity and heat, plus the oil, gas and coal industry itself, including gas that leaks out during drilling and transport.</dd></div>
+    <div><dt>Industry <span>24%</span></dt><dd>Factories making steel, cement, chemicals and other materials. Some comes from fuel burned on site, and some from chemical reactions, like heating limestone to make cement.</dd></div>
+    <div><dt>Farming, forests and land use <span>22%</span></dt><dd>Cutting down forests, methane from cows and other livestock, fertilizer, and flooded rice fields.</dd></div>
+    <div><dt>Transport <span>15%</span></dt><dd>The fuel burned by cars, trucks, buses, planes, ships and trains.</dd></div>
+    <div><dt>Buildings <span>6%</span></dt><dd>Gas and oil burned for heating and cooking in homes, offices and stores. The electricity those buildings use is counted under energy supply, which is why this share looks small.</dd></div>
+  </dl>
+
+  <p>Planes fall under transport. Within that sector, road vehicles are by far the biggest part. Aviation is a distant second, just ahead of shipping.<sup><a href="#s3">3</a></sup></p>
+
+  <figure>
+    <p class="fig-title">Inside transport</p>
+    <p class="fig-sub">Share of transport emissions, 2019</p>
+    <div class="bars" role="img" aria-label="Road vehicles 70%, aviation 12%, shipping 11%, rail 1%">
+      <div class="bar-row"><span class="bar-name">Road vehicles</span><div class="bar-area"><div class="bar" style="width:84%" title="Road vehicles: 70%"></div><span class="bar-val">70%</span></div></div>
+      <div class="bar-row"><span class="bar-name">Aviation</span><div class="bar-area"><div class="bar hl" style="width:14.4%" title="Aviation: 12%"></div><span class="bar-val">12%</span></div></div>
+      <div class="bar-row"><span class="bar-name">Shipping</span><div class="bar-area"><div class="bar" style="width:13.2%" title="Shipping: 11%"></div><span class="bar-val">11%</span></div></div>
+      <div class="bar-row"><span class="bar-name">Rail</span><div class="bar-area"><div class="bar" style="width:1.2%" title="Rail: 1%"></div><span class="bar-val">1%</span></div></div>
+    </div>
+    <figcaption>Source: IPCC Sixth Assessment Report, Working Group III, Chapter 10. The remaining 6% is other kinds of transport.</figcaption>
+  </figure>
+
+  <p>Put those two charts together and aviation comes out at about <strong>1.8% of all greenhouse gas emissions</strong> (12% of transport's 15%). Counting CO₂ alone, it's about <strong>2.6% of the CO₂ from energy</strong>: 983 million tonnes out of 37.8 billion.<sup><a href="#s4">4</a>,<a href="#s5">5</a></sup></p>
+
+  <h2>Every number in one place</h2>
+
+  <figure>
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr><th>Source</th><th class="num">Per day</th><th class="num">Per year</th><th>Other gases</th></tr>
-        </thead>
+        <thead><tr><th>What</th><th class="num">Per year</th><th class="num">Per day</th><th>Year · source</th></tr></thead>
         <tbody>
           <tr class="group"><td colspan="4">The whole world</td></tr>
-          <tr><td>All human emissions <small>(2024)</small></td><td class="num">146 Mt CO₂e</td><td class="num">53.2 Gt CO₂e</td><td>74.5% fossil CO₂, 17.9% methane, 4.8% nitrous oxide, 2.8% F-gases</td></tr>
-          <tr class="group"><td colspan="4">Big groups</td></tr>
-          <tr><td>All planes <small>(2025)</small></td><td class="num">2.7 Mt</td><td class="num">983 Mt</td><td>Contrails, nitrogen oxides, water vapour, soot</td></tr>
-          <tr><td>All ships <small>(2024)</small></td><td class="num">2.7 Mt</td><td class="num">973 Mt</td><td>Mostly CO₂</td></tr>
-          <tr><td>All volcanoes</td><td class="num">0.7 Mt</td><td class="num">260 Mt</td><td><small>Estimates range 130–440 Mt a year</small></td></tr>
-          <tr class="group"><td colspan="4">One of each</td></tr>
-          <tr><td>One flight <small>(average)</small></td><td class="num">26 t</td><td class="num">—</td><td>Same as about 2,000 cars driving for a day</td></tr>
-          <tr><td>One car</td><td class="num">12.6 kg</td><td class="num">4.6 t</td><td>Methane, nitrous oxide and AC leaks add 1–5%</td></tr>
-          <tr><td>One dairy cow</td><td class="num">10 kg CO₂e</td><td class="num">3.7 t CO₂e</td><td>Almost all methane (138 kg a year)</td></tr>
-          <tr><td>One person breathing</td><td class="num">1 kg</td><td class="num">0.37 t</td><td><small>Not counted as pollution (see below)</small></td></tr>
+          <tr><td>All greenhouse gases <small>(not counting land use)</small></td><td class="num">53.2 Gt CO₂e</td><td class="num">146 Mt CO₂e</td><td>2024 · EDGAR<sup><a href="#s1">1</a></sup></td></tr>
+          <tr><td>All greenhouse gases <small>(counting land use)</small></td><td class="num">59 Gt CO₂e</td><td class="num">162 Mt CO₂e</td><td>2019 · IPCC<sup><a href="#s2">2</a></sup></td></tr>
+          <tr><td>CO₂ from energy only</td><td class="num">37.8 Gt</td><td class="num">104 Mt</td><td>2024 · IEA<sup><a href="#s5">5</a></sup></td></tr>
+          <tr><td colspan="4"><small>By gas (2024): fossil CO₂ 74.5% · methane 17.9% · nitrous oxide 4.8% · F-gases 2.8%<sup><a href="#s1">1</a></sup></small></td></tr>
+          <tr class="group"><td colspan="4">By sector (share of total, 2019)<sup><a href="#s2">2</a></sup></td></tr>
+          <tr><td>Energy supply · 34%</td><td class="num">20 Gt CO₂e</td><td class="num">55 Mt CO₂e</td><td>2019 · IPCC</td></tr>
+          <tr><td>Industry · 24%</td><td class="num">14 Gt CO₂e</td><td class="num">38 Mt CO₂e</td><td>2019 · IPCC</td></tr>
+          <tr><td>Farming, forests &amp; land · 22%</td><td class="num">13 Gt CO₂e</td><td class="num">36 Mt CO₂e</td><td>2019 · IPCC</td></tr>
+          <tr><td>Transport · 15%</td><td class="num">8.7 Gt CO₂e</td><td class="num">24 Mt CO₂e</td><td>2019 · IPCC</td></tr>
+          <tr><td>Buildings · 6%</td><td class="num">3.3 Gt CO₂e</td><td class="num">9 Mt CO₂e</td><td>2019 · IPCC</td></tr>
+          <tr class="group"><td colspan="4">Planes compared (CO₂)</td></tr>
+          <tr><td>All planes</td><td class="num">983 Mt</td><td class="num">2.7 Mt</td><td>2025 · IATA<sup><a href="#s4">4</a></sup></td></tr>
+          <tr><td>All ships</td><td class="num">973 Mt</td><td class="num">2.7 Mt</td><td>2024 · OECD<sup><a href="#s6">6</a></sup></td></tr>
+          <tr><td>All volcanoes <small>(estimates range 130–440 Mt)</small></td><td class="num">260 Mt</td><td class="num">0.7 Mt</td><td>USGS<sup><a href="#s7">7</a></sup></td></tr>
+          <tr><td>One average flight <small>(whole plane)</small></td><td class="num">—</td><td class="num">25 t</td><td>2025–26 · IATA, OAG<sup><a href="#s4">4</a>,<a href="#s9">9</a></sup></td></tr>
+          <tr><td>One gasoline car</td><td class="num">4.6 t</td><td class="num">12.6 kg</td><td>EPA<sup><a href="#s10">10</a></sup></td></tr>
         </tbody>
       </table>
     </div>
-    <figcaption class="swipe" style="display:none">Swipe the table sideways to see every column.</figcaption>
-    <figcaption>Mt = million tonnes, Gt = billion tonnes, t = tonnes. Per-day figures are yearly totals divided by 365. The average flight is 2.7 Mt divided by about 103,000 flights a day. Years differ between sources, so treat these as close estimates rather than exact counts.</figcaption>
+    <figcaption class="swipe">Swipe the table sideways to see every column.</figcaption>
+    <figcaption>Gt = billion tonnes, Mt = million tonnes, t = tonnes. Per-day figures are yearly totals divided by 365. The average flight is 2.7 Mt divided by about 106,000 commercial flights a day. Sources measure different years, so treat the numbers as close estimates.</figcaption>
   </figure>
 
-  <h2>Putting the big numbers side by side</h2>
+  <h2>Planes next to everything else</h2>
 
-  <p>Planes and ships pollute about equally, and each one releases nearly four times as much CO₂ as every volcano on Earth combined. Volcanoes are often blamed for climate change, but humans release as much CO₂ in under three days as all the world's volcanoes do in a year. Even the eruptions of Mount St. Helens in 1980 and Pinatubo in 1991 only matched human output for about nine hours.</p>
+  <p>Every day, the world's airlines burn enough fuel to release about <strong>2.7 million tonnes of CO₂</strong>, almost exactly the same as all the world's ships. Spread across about 106,000 commercial flights a day,<sup><a href="#s9">9</a></sup> that's about <strong>25 tonnes per flight</strong>. That's the same as about 2,000 cars each driving for a day. It's for the whole plane, not one passenger, and long flights release far more than short ones.</p>
 
   <figure>
     <p class="fig-title">CO₂ released per day</p>
     <p class="fig-sub">Million tonnes</p>
-    <div class="bars" role="img" aria-label="Bar chart: all planes 2.7, all ships 2.7, all volcanoes 0.7 million tonnes of CO2 per day">
-      <div class="bar-row"><span class="bar-name">All planes</span><div class="bar-area"><div class="bar" style="width:84%" title="All planes: about 2.7 million tonnes a day"></div><span class="bar-val">2.7</span></div></div>
+    <div class="bars" role="img" aria-label="All planes 2.7, all ships 2.7, all volcanoes 0.7 million tonnes of CO2 per day">
+      <div class="bar-row"><span class="bar-name">All planes</span><div class="bar-area"><div class="bar hl" style="width:84%" title="All planes: about 2.7 million tonnes a day"></div><span class="bar-val">2.7</span></div></div>
       <div class="bar-row"><span class="bar-name">All ships</span><div class="bar-area"><div class="bar" style="width:83%" title="All ships: about 2.7 million tonnes a day"></div><span class="bar-val">2.7</span></div></div>
       <div class="bar-row"><span class="bar-name">All volcanoes</span><div class="bar-area"><div class="bar" style="width:22%" title="All volcanoes: about 0.7 million tonnes a day"></div><span class="bar-val">0.7</span></div></div>
     </div>
-    <figcaption>For scale, all human activity releases about 146 million tonnes of greenhouse gases a day, more than 50 times what planes release.</figcaption>
+    <figcaption>Sources: IATA (2025), OECD (2024), USGS. For scale, energy alone releases about 104 million tonnes of CO₂ a day.</figcaption>
   </figure>
 
-  <p>On a smaller scale, an average flight releases about 26 tonnes of CO₂, the same as about 2,000 cars each driving for a day. That's for the whole plane, not one passenger, and it's an average: long flights release far more, short ones far less. A car releases about 12.6 kg a day, and a dairy cow releases about 10 kg of CO₂e a day, almost all of it methane from digestion.</p>
-
-  <p>You also breathe out about 1 kg of CO₂ a day, but it isn't counted as pollution. That carbon came from food, and the plants behind that food pulled it out of the air recently, so breathing just completes a natural loop. Burning fuel is different, because it releases carbon that had been locked underground for millions of years.</p>
+  <p>Volcanoes are often blamed for climate change, but planes alone release nearly four times as much CO₂ as every volcano on Earth combined. Humans release as much CO₂ from energy in under three days as all volcanoes do in a year.<sup><a href="#s7">7</a></sup> Even the giant eruptions of Mount St. Helens in 1980 and Pinatubo in 1991 matched human CO₂ output for only about nine hours each.<sup><a href="#s8">8</a></sup></p>
 
   <h2>The part CO₂ numbers miss</h2>
 
-  <p>Planes cause more warming than their CO₂ alone suggests. When they fly high, they leave contrails, the white lines across the sky. Some of these spread into thin clouds that trap heat. Jet engines also release nitrogen oxides, which add more warming. Planes release almost no methane or nitrous oxide, so this is where their extra impact comes from.</p>
+  <p>Planes warm the planet more than their CO₂ alone suggests. At cruising height, they leave contrails, the white lines across the sky. Some spread into thin clouds that trap heat. Jet engines also release nitrogen oxides, which add more warming. The most complete study so far found that these extra effects cause about two-thirds of aviation's warming.<sup><a href="#s11">11</a></sup></p>
 
   <figure>
     <p class="fig-title">What causes aviation's warming</p>
-    <p class="fig-sub">Share of the total warming effect from planes</p>
+    <p class="fig-sub">Share of the total warming effect from planes, 2018</p>
     <div class="stack" role="img" aria-label="CO2 causes about one third of aviation's warming; contrails, nitrogen oxides and other effects cause about two thirds">
       <div class="a" style="width:34%" title="CO₂: about one third"></div>
       <div class="b" style="width:66%" title="Contrails, nitrogen oxides and other effects: about two thirds"></div>
@@ -170,35 +225,34 @@
       <div style="width:34%"><span class="key" style="background:var(--s1)"></span><span>CO₂<br><strong>About 1/3</strong></span></div>
       <div style="width:66%"><span class="key" style="background:var(--s2)"></span><span>Contrails, nitrogen oxides, soot<br><strong>About 2/3</strong></span></div>
     </div>
-    <figcaption>Based on Lee et al. (2021), using 2018 data.</figcaption>
+    <figcaption>Source: Lee et al., Atmospheric Environment (2021).</figcaption>
   </figure>
 
-  <p>Counting all of these effects, scientists estimate that flying causes about <strong>3.5% of human-caused warming</strong>. That's more than its 2.5% share of CO₂, but still a small slice of the whole. Power plants, factories and road traffic are all far bigger. The worry with flying is the trend: planes keep getting more efficient, but the number of flights keeps growing faster, so total emissions keep rising.</p>
+  <p>Counting everything, the same study estimated that flying causes about <strong>3.5% of human-caused warming</strong>.<sup><a href="#s11">11</a>,<a href="#s12">12</a></sup> So all three ways of measuring point the same way: aviation is about 1.8% of greenhouse gases, about 2.6% of energy CO₂, and about 3.5% of warming. It's a real share, but a small one next to power plants, industry, farming and road traffic. The concern is the direction. Planes keep getting more efficient, but the number of flights grows faster, so total emissions keep rising.<sup><a href="#s4">4</a></sup></p>
 
   <h2>What can be done</h2>
 
-  <p>Airlines have made real progress per trip. Between 2018 and 2025, the CO₂ released for every tonne of passengers and cargo carried one kilometre fell by about 20%, thanks to newer planes and better operations. Because there are so many more flights, total emissions still went up. Sustainable aviation fuel, made from waste, plants or captured carbon, is the industry's main hope, but it's growing slowly. In 2025, it cut about 1% of airline CO₂ when combined with carbon offsets. Since contrails cause so much of the warming, researchers are also testing whether small changes in altitude can help planes avoid the air where long-lasting contrails form.</p>
+  <p>Because aviation is a small part of a much bigger picture, the largest cuts in emissions will come from the biggest sectors: cleaner electricity, cleaner industry, less deforestation and cleaner cars. Aviation still has to do its share, and it has three main options. The first is <strong>more efficient planes and routes</strong>, which already cut fuel per trip but haven't kept up with growth. The second is <strong>sustainable aviation fuel</strong>, made from waste, plants or captured carbon. It's the industry's main hope, but in 2025 it cut only about 1% of airline CO₂, even when combined with carbon offsets.<sup><a href="#s4">4</a></sup> The third is <strong>avoiding contrails</strong>. Long-lasting contrails only form in certain cold, humid air, so small changes in altitude could prevent many of them, and researchers are studying how to do that safely.</p>
 
-  <p>For travellers, the biggest choice is simply how often to fly. For short trips, a train or bus usually releases much less per person. When flying does make sense, a nonstop flight avoids a second takeoff and climb, the most fuel-hungry part of any trip, and economy seats spread each flight's emissions across more people. None of this will fix the problem alone, but flying is one of the few areas where one person's choices make a noticeable difference to their own footprint.</p>
-
-  <p class="note">Numbers in this article are rounded estimates from the sources below and may differ slightly from other reports that use different years or methods.</p>
+  <p>For travellers, the biggest choice is how often to fly. For short trips, a train or bus usually releases much less per person. When flying does make sense, a nonstop flight avoids a second takeoff and climb, the most fuel-hungry part of any trip, and economy seats spread each flight's emissions across more people.</p>
 
 </main>
 
 <footer class="col">
   <p class="fig-title">Sources</p>
   <ol class="sources">
-    <li><a href="https://edgar.jrc.ec.europa.eu/report_2025">EDGAR (European Commission), global greenhouse gas emissions, 2025 report</a></li>
-    <li><a href="https://www.iata.org/contentassets/252e4a52294e4d86928fb5fd8a1ffd5c/net-zero-progress-report-2025.pdf">IATA, Net Zero Progress Report 2025</a></li>
-    <li><a href="https://www.airportia.com/flights-monitor/">Airportia, daily flights worldwide</a></li>
-    <li><a href="https://environmentenergyleader.com/stories/shipping-co2-emissions-rise-9-percent-since-2019,107317">OECD shipping data, via Environment+Energy Leader</a></li>
-    <li><a href="https://www.usgs.gov/programs/VHP/volcanoes-can-affect-climate">USGS, volcanoes and climate</a></li>
-    <li><a href="https://www.climate.gov/news-features/climate-qa/which-emits-more-carbon-dioxide-volcanoes-or-human-activities">NOAA Climate.gov, volcanoes vs. human activities</a></li>
-    <li><a href="https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle">US EPA, emissions from a typical passenger vehicle</a></li>
-    <li><a href="https://greencalculus.com/glossary/enteric-fermentation/">IPCC default methane factor for dairy cows, via Green Calculus</a></li>
-    <li><a href="https://www.carbonbrief.org/guest-post-calculating-the-true-climate-impact-of-aviation-emissions">Carbon Brief, the true climate impact of aviation (Lee et al., 2021)</a></li>
-    <li><a href="https://climate.leeds.ac.uk/news/aviation-contributes-3-5-to-human-caused-climate-change/">University of Leeds, aviation and 3.5% of warming</a></li>
-    <li><a href="https://www.adsgroup.org.uk/knowledge/industry-member-news/aviation-operational-gains-offset-by-industry-growth/">IBA, aviation carbon intensity 2018–2025</a></li>
+    <li id="s1"><a href="https://edgar.jrc.ec.europa.eu/report_2025">GHG Emissions of All World Countries, 2025 Report</a> <span>— EDGAR, European Commission Joint Research Centre</span></li>
+    <li id="s2"><a href="https://www.ipcc.ch/report/ar6/wg3/chapter/summary-for-policymakers/">Climate Change 2022: Mitigation of Climate Change, Summary for Policymakers</a> <span>— IPCC Sixth Assessment Report, Working Group III</span></li>
+    <li id="s3"><a href="https://www.ipcc.ch/report/ar6/wg3/chapter/chapter-10/">Chapter 10: Transport</a> <span>— IPCC Sixth Assessment Report, Working Group III</span></li>
+    <li id="s4"><a href="https://www.iata.org/contentassets/252e4a52294e4d86928fb5fd8a1ffd5c/net-zero-progress-report-2025.pdf">Net Zero Progress Report 2025</a> <span>— International Air Transport Association (IATA)</span></li>
+    <li id="s5"><a href="https://www.iea.org/reports/global-energy-review-2025/co2-emissions">Global Energy Review 2025: CO₂ Emissions</a> <span>— International Energy Agency (IEA)</span></li>
+    <li id="s6"><a href="https://www.oecd.org/en/publications/analysing-recent-trends-and-drivers-of-maritime-transport-co-emission_6bb2bd69-en.html">Analysing Recent Trends and Drivers of Maritime Transport CO₂ Emissions</a> <span>— OECD</span></li>
+    <li id="s7"><a href="https://www.usgs.gov/programs/VHP/volcanoes-can-affect-climate">Volcanoes Can Affect Climate</a> <span>— U.S. Geological Survey (USGS)</span></li>
+    <li id="s8"><a href="https://www.climate.gov/news-features/climate-qa/which-emits-more-carbon-dioxide-volcanoes-or-human-activities">Which Emits More Carbon Dioxide: Volcanoes or Human Activities?</a> <span>— NOAA Climate.gov</span></li>
+    <li id="s9"><a href="https://www.oag.com/frequency-capacity-statistics">Global Aviation Market: Frequency and Capacity Statistics</a> <span>— OAG</span></li>
+    <li id="s10"><a href="https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle">Greenhouse Gas Emissions from a Typical Passenger Vehicle</a> <span>— U.S. Environmental Protection Agency (EPA)</span></li>
+    <li id="s11"><a href="https://doi.org/10.1016/j.atmosenv.2020.117834">The Contribution of Global Aviation to Anthropogenic Climate Forcing for 2000 to 2018</a> <span>— Lee et al., Atmospheric Environment (2021)</span></li>
+    <li id="s12"><a href="https://climate.leeds.ac.uk/news/aviation-contributes-3-5-to-human-caused-climate-change/">Aviation Contributes 3.5% to Human-Caused Climate Change</a> <span>— University of Leeds</span></li>
   </ol>
 </footer>
 
